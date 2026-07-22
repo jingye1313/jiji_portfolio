@@ -1,0 +1,826 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="light only">
+<meta name="theme-color" content="#FFFFFF">
+<title>김지예 — Architectural Designer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#FFFFFF;
+    --ink:#141414;
+    --sub:#5C5C5C;
+    --line:#E5E5E3;
+    --muted:#A0A0A0;
+  }
+  *{ margin:0; padding:0; box-sizing:border-box; }
+  html{ scroll-behavior:smooth; color-scheme: light only; background:var(--bg); }
+  body{
+    background:var(--bg) !important; color:var(--ink) !important;
+    font-family:'Noto Sans KR', sans-serif; font-weight:300;
+    -webkit-font-smoothing:antialiased;
+    min-height:100vh;
+  }
+  a{ color:inherit; text-decoration:none; }
+  ::selection{ background:var(--ink); color:var(--bg); }
+  :focus-visible{ outline:2px solid var(--ink); outline-offset:3px; }
+  button{ font-family:inherit; }
+
+  .wrap{ max-width:1120px; margin:0 auto; padding-left:8vw; padding-right:8vw; }
+  @media (min-width:1300px){ .wrap{ padding-left:120px; padding-right:120px; } }
+
+  h1,h2,h3{ font-family:'Noto Sans KR', sans-serif; font-weight:700; letter-spacing:-0.01em; }
+  .eyebrow{
+    font-size:12px; letter-spacing:0.22em; text-transform:uppercase;
+    color:var(--muted); font-weight:500;
+    display:inline-flex; align-items:center; gap:10px;
+  }
+  .eyebrow::before{ content:""; width:20px; height:1px; background:var(--muted); display:inline-block; }
+
+  /* ---------- COVER ---------- */
+  html.cover-lock, body.cover-lock{ overflow:hidden; height:100%; }
+  .cover{
+    position:fixed; inset:0; z-index:999; background:var(--bg);
+    display:flex; flex-direction:column; justify-content:space-between;
+    padding:28px 8vw 40px; cursor:pointer;
+    opacity:1; visibility:visible; transition:opacity .55s ease, visibility .55s ease;
+  }
+  @media (min-width:1300px){ .cover{ padding:32px 120px 48px; } }
+  .cover.cover-hidden{ opacity:0; visibility:hidden; pointer-events:none; }
+  .cover-top{
+    display:flex; justify-content:space-between;
+    font-size:11px; letter-spacing:0.16em; text-transform:uppercase;
+    color:var(--muted); font-weight:400;
+  }
+  .cover-main{ flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:28px; text-align:center; }
+  .cover-blank{
+    font-weight:300; letter-spacing:0.04em; line-height:1;
+    font-size:clamp(44px,10vw,110px); color:var(--ink);
+  }
+  .cover-blank .bracket{ font-weight:400; color:var(--ink); }
+  .cover-blank .word{ color:var(--muted); font-style:italic; font-weight:600; }
+  .cover-sub{
+    font-size:12px; font-weight:400; letter-spacing:0.1em; text-transform:uppercase;
+    color:var(--muted);
+  }
+  .cover-enter{
+    align-self:flex-end; display:flex; align-items:center; gap:10px;
+    background:none; border:1px solid var(--ink); border-radius:100px;
+    padding:12px 22px; cursor:pointer; font-family:inherit;
+    font-size:11px; letter-spacing:0.1em; text-transform:uppercase; font-weight:700;
+    color:var(--ink); transition:background .25s ease, color .25s ease;
+  }
+  .cover-enter svg{ width:13px; height:13px; transition:transform .25s ease; }
+  .cover-enter:hover{ background:var(--ink); color:#fff; }
+  .cover-enter:hover svg{ transform:translateY(2px); }
+
+  /* ---------- TOP BAR ---------- */
+  header.topbar{
+    position:sticky; top:0; z-index:50;
+    background:rgba(255,255,255,0.9); backdrop-filter:blur(10px);
+    border-bottom:1px solid var(--line);
+  }
+  .topbar-inner{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:18px 8vw;
+  }
+  @media (min-width:1300px){ .topbar-inner{ padding:18px 120px; } }
+  .topbar-inner .brand{
+    font-weight:700; font-size:17px; white-space:nowrap;
+    background:none; border:none; padding:0; cursor:pointer;
+    font-family:inherit; color:var(--ink); transition:opacity .2s ease;
+  }
+  .topbar-inner .brand:hover{ opacity:0.6; }
+  .topbar-inner .brand span{ color:var(--muted); font-weight:500; font-size:11px; margin-left:8px; letter-spacing:0.05em;}
+
+  /* ---------- ICON NAV ---------- */
+  nav.icon-nav{
+    display:flex; gap:4px; overflow-x:auto; scrollbar-width:none;
+  }
+  nav.icon-nav::-webkit-scrollbar{ display:none; }
+  .nav-item{
+    display:flex; flex-direction:column; align-items:center; gap:6px;
+    background:none; border:none; cursor:pointer; padding:10px 16px;
+    color:var(--muted); flex-shrink:0; border-radius:10px; transition:background .25s ease, color .25s ease;
+  }
+  .nav-item svg{ width:19px; height:19px; stroke:var(--muted); transition:stroke .25s ease, transform .25s ease; }
+  .nav-item span{ font-size:10px; letter-spacing:0.06em; text-transform:uppercase; font-weight:700; }
+  .nav-item:hover{ color:var(--ink); background:#F7F7F5; }
+  .nav-item:hover svg{ stroke:var(--ink); transform:translateY(-1px); }
+  .nav-item.active{ color:var(--ink); }
+  .nav-item.active svg{ stroke:var(--ink); }
+  .nav-item.active::after{
+    content:""; width:4px; height:4px; border-radius:50%; background:var(--ink); margin-top:1px;
+  }
+  .nav-item:not(.active)::after{ content:""; width:4px; height:4px; margin-top:1px; }
+
+  /* ---------- HERO (always visible) ---------- */
+  section.hero{ padding:64px 8vw 56px; }
+  @media (min-width:1300px){ section.hero{ padding:72px 120px 64px; } }
+  section.hero .eyebrow{ margin-bottom:28px; }
+  section.hero h1{
+    font-weight:700; font-size:clamp(30px,5vw,60px); line-height:1.18; letter-spacing:-0.02em;
+    max-width:900px;
+  }
+  section.hero h1 em{ font-style:normal; font-weight:900; }
+  section.hero .sub{
+    margin-top:24px; font-size:15px; line-height:1.75; color:var(--sub);
+    max-width:460px; font-weight:300;
+  }
+
+  /* ---------- VIEW SWITCH ---------- */
+  .view{ display:none; }
+  .view.active{ display:block; animation:fadeIn .35s ease; }
+  @keyframes fadeIn{ from{ opacity:0; transform:translateY(6px);} to{ opacity:1; transform:translateY(0);} }
+
+  section.block{ padding:72px 8vw 96px; border-top:1px solid var(--line); }
+  @media (min-width:1300px){ section.block{ padding:80px 120px 110px; } }
+  .block-head{ display:flex; align-items:baseline; justify-content:flex-end; margin-bottom:48px; flex-wrap:wrap; gap:12px; }
+  .block-head h2{ font-size:clamp(26px,3.2vw,38px); font-weight:700; }
+
+  /* ---------- PROFILE ---------- */
+  .profile-grid{ display:grid; grid-template-columns:200px 1fr; gap:48px; align-items:start; }
+  @media (max-width:840px){ .profile-grid{ grid-template-columns:1fr; gap:32px; } }
+  .profile-photo{
+    width:100%; max-width:200px; aspect-ratio:3/4;
+    border:1px solid var(--line); overflow:hidden; background:#FAFAF9;
+  }
+  .profile-photo img{ width:100%; height:100%; object-fit:cover; display:block; }
+  .profile-left{ display:flex; flex-direction:column; gap:24px; width:100%; max-width:200px; }
+  .profile-mini-facts{ display:flex; flex-direction:column; gap:14px; }
+  .profile-mini-facts dt{ font-size:10px; letter-spacing:0.08em; color:var(--muted); text-transform:uppercase; margin-bottom:4px; font-weight:700; }
+  .profile-mini-facts dd{ font-size:12px; color:var(--sub); font-weight:400; line-height:1.5; }
+  @media (min-width:841px){
+    .profile-text{ margin-left:auto; max-width:560px; }
+  }
+  .profile-text p{ font-size:16px; line-height:1.9; color:var(--sub); font-weight:300; margin-bottom:20px; }
+  .profile-text p:last-child{ margin-bottom:0; }
+  .profile-text p strong{ color:var(--ink); font-weight:700; }
+
+  /* ---- compact summary widgets inside profile ---- */
+  .mini-widgets{ margin-top:56px; display:grid; grid-template-columns:1fr 1fr 1fr; gap:1px; background:var(--line); border:1px solid var(--line); isolation:isolate; position:relative; z-index:1; }
+  @media (max-width:900px){ .mini-widgets{ grid-template-columns:1fr; } }
+  .mini-card{ background:#fff; padding:20px; }
+  .mini-card-head{ display:flex; align-items:center; justify-content:space-between; margin-bottom:14px; }
+  .mini-card-head h4{ font-weight:700; font-size:11px; letter-spacing:0.1em; text-transform:uppercase; color:var(--muted); }
+  .mini-list{ display:flex; flex-direction:column; gap:11px; }
+  .mini-row{ display:flex; flex-direction:column; gap:2px; font-size:12px; }
+  .mini-row .m-year{ color:var(--muted); font-weight:700; font-size:10px; letter-spacing:0.03em; }
+  .mini-row .m-title{ color:var(--ink); font-weight:400; line-height:1.4; }
+
+  .mini-row-career{ display:flex; justify-content:space-between; align-items:flex-start; gap:12px; font-size:12px; }
+  .mini-row-career .m-year{ color:var(--muted); font-weight:700; font-size:10px; letter-spacing:0.03em; flex-shrink:0; padding-top:1px; }
+  .mini-row-career .m-right{ display:flex; flex-direction:column; align-items:flex-end; text-align:right; gap:3px; }
+  .mini-row-career .m-company{ color:var(--ink); font-weight:400; line-height:1.4; }
+  .mini-row-career .m-position{ color:var(--muted); font-weight:500; font-size:10px; letter-spacing:0.03em; }
+
+  .skill-row{ display:flex; flex-direction:column; gap:5px; font-size:11px; }
+  .skill-row .s-label{ display:flex; justify-content:space-between; font-weight:700; color:var(--sub); }
+  .skill-dots{ display:flex; gap:3px; }
+  .skill-dots span{ width:5px; height:5px; border-radius:50%; background:var(--line); }
+  .skill-dots span.filled{ background:var(--muted); }
+
+  .skills-panel{ margin-top:1px; background:#fff; border:1px solid var(--line); border-top:none; padding:20px; }
+  .skills-panel .mini-card-head{ margin-bottom:16px; }
+  .skills-grid{ display:grid; grid-template-columns:repeat(5, 1fr); gap:16px 16px; }
+  @media (max-width:900px){ .skills-grid{ grid-template-columns:repeat(3, 1fr); } }
+  @media (max-width:560px){ .skills-grid{ grid-template-columns:repeat(2, 1fr); } }
+
+  /* ---------- PROJECT SUB-TABS ---------- */
+  .subtabs{ display:flex; gap:8px; margin-bottom:48px; }
+  .subtab-btn{
+    background:none; border:1px solid var(--line); padding:10px 20px; font-size:12px;
+    letter-spacing:0.05em; color:var(--muted); cursor:pointer; border-radius:100px; transition:all .2s ease;
+    font-weight:700;
+  }
+  .subtab-btn.active{ background:var(--ink); color:#fff; border-color:var(--ink); }
+  .subview{ display:none; }
+  .subview.active{ display:block; }
+
+  /* ---------- PROJECTS (row list, image + text) ---------- */
+  .project-row-list{ display:flex; flex-direction:column; }
+  .project-row-item{
+    display:flex; gap:24px; width:100%; text-align:left;
+    padding:28px 0; border-top:1px solid var(--line);
+    background:none; border-left:none; border-right:none; border-bottom:none;
+    cursor:pointer; align-items:flex-start; font-family:inherit;
+    color:var(--ink); -webkit-appearance:none; appearance:none;
+  }
+  .project-row-list .project-row-item:last-child{ border-bottom:1px solid var(--line); }
+  .pr-thumb{
+    width:170px; height:auto; display:block; flex-shrink:0;
+    border:1px solid var(--line); transition:opacity .25s ease;
+  }
+  .project-row-item:hover .pr-thumb{ opacity:0.85; }
+  .pr-body{ flex:1; min-width:0; }
+  .pr-year{ font-size:12px; font-weight:700; color:var(--muted); }
+  .pr-body h3{ font-size:19px; font-weight:700; margin-top:6px; color:var(--ink); transition:color .25s ease; }
+  .project-row-item:hover .pr-body h3{ color:var(--sub); }
+  .pr-tag{ font-size:11px; letter-spacing:0.06em; text-transform:uppercase; color:var(--muted); margin-top:6px; display:block; font-weight:700; }
+  .pr-desc{ font-size:13px; line-height:1.75; color:var(--sub); font-weight:300; margin-top:10px; display:none; }
+  @media (min-width:641px){ .pr-desc{ display:block; } }
+  @media (max-width:640px){
+    .project-row-item{ flex-direction:column; gap:14px; }
+    .pr-thumb{ width:100%; height:auto; }
+  }
+
+  /* ---------- PROJECT DETAIL MODAL (carousel) ---------- */
+  .proj-modal{
+    position:fixed; inset:0; z-index:900; background:rgba(20,20,20,0.6);
+    display:none; align-items:flex-start; justify-content:center;
+    overflow-y:auto; padding:40px 16px;
+  }
+  .proj-modal.proj-modal-open{ display:flex; }
+  .proj-modal-panel{
+    background:#fff; max-width:640px; width:100%; margin:0 auto;
+    border:1px solid var(--line); position:relative;
+  }
+  .pm-topbar{
+    display:flex; justify-content:flex-end; align-items:center;
+    padding:10px 14px;
+  }
+  .proj-modal-close{
+    background:none; border:none; padding:4px; cursor:pointer;
+    font-size:18px; line-height:1; color:var(--ink);
+  }
+  .pm-stage{ position:relative; background:#F5F5F4; aspect-ratio:4/3; overflow:hidden; }
+  .pm-stage img{ width:100%; height:100%; object-fit:contain; display:block; cursor:zoom-in; }
+
+  /* ---------- FULLSCREEN IMAGE LIGHTBOX (pinch/scroll to zoom) ---------- */
+  .img-lightbox{
+    position:fixed; inset:0; z-index:950; background:#000;
+    display:none; overflow:auto; touch-action:pinch-zoom;
+  }
+  .img-lightbox.lightbox-open{ display:block; }
+  .img-lightbox-inner{
+    min-height:100%; display:flex; align-items:center; justify-content:center; padding:0;
+  }
+  .img-lightbox img{ display:block; width:100%; height:auto; }
+  .lightbox-close{
+    position:fixed; top:14px; right:16px; z-index:2;
+    background:none; border:none; padding:6px; cursor:pointer;
+    font-size:22px; line-height:1; color:#fff;
+  }
+  .pm-controls{
+    display:flex; justify-content:flex-end; align-items:center;
+    padding:10px 14px;
+  }
+  .pm-arrow{
+    background:none; border:none; padding:4px; cursor:pointer; color:var(--ink);
+    display:flex; align-items:center;
+  }
+  .pm-arrow svg{ width:34px; height:14px; }
+  .proj-modal-text{ padding:24px 26px 32px; }
+  .proj-modal-tag{ font-size:11px; letter-spacing:0.06em; text-transform:uppercase; color:var(--muted); font-weight:700; }
+  .proj-modal-text h2{ font-size:22px; font-weight:700; margin-top:10px; }
+  .proj-modal-desc{ font-size:14px; line-height:1.8; color:var(--sub); font-weight:300; margin-top:14px; }
+  html.modal-lock, body.modal-lock{ overflow:hidden; height:100%; }
+
+  .other-works{ margin-top:64px; }
+  .other-works h4{ font-weight:700; font-size:16px; margin-bottom:20px; color:var(--sub); }
+  .ow-year-group{ margin-bottom:36px; }
+  .ow-year-group:last-child{ margin-bottom:0; }
+  .ow-year-label{
+    font-family:'Noto Sans KR', sans-serif; font-weight:700; font-size:20px; color:var(--ink);
+    padding-bottom:8px; margin-bottom:16px; border-bottom:1px solid var(--line);
+  }
+  .ow-grid{ column-count:2; column-gap:48px; }
+  @media (max-width:760px){ .ow-grid{ column-count:1; } }
+  .ow-row{
+    break-inside: avoid; -webkit-column-break-inside: avoid;
+    padding:14px 0;
+    display:flex; align-items:baseline; gap:12px; flex-wrap:wrap;
+  }
+  .ow-row .ow-year{ font-size:12px; font-weight:700; color:var(--muted); flex-shrink:0; width:26px; }
+  .ow-row .ow-body{ flex:1; min-width:0; }
+  .ow-row .ow-title{ font-size:13px; font-weight:700; color:var(--ink); display:block; }
+  .ow-row .ow-desc{ font-size:11px; font-weight:300; color:var(--muted); display:block; margin-top:3px; }
+
+  .extra-note{
+    margin-top:56px; padding-top:32px; border-top:1px solid var(--line);
+    font-size:13px; color:var(--sub); font-weight:300; line-height:1.8;
+  }
+  .extra-note strong{ color:var(--ink); font-weight:700; }
+
+  /* ---------- PHOTO GALLERY ---------- */
+  .photo-intro{ font-size:14px; line-height:1.8; color:var(--sub); font-weight:300; max-width:520px; margin-bottom:48px; }
+  .photo-grid{ column-count:3; column-gap:14px; }
+  @media (max-width:900px){ .photo-grid{ column-count:2; } }
+  @media (max-width:560px){ .photo-grid{ column-count:1; } }
+  .photo-item{ break-inside:avoid; -webkit-column-break-inside:avoid; margin-bottom:28px; }
+  .photo-item img{ width:100%; display:block; border:1px solid var(--line); }
+  .photo-item .cap{ font-size:11px; color:var(--muted); margin-top:8px; font-weight:500; letter-spacing:0.02em; }
+  .photo-set-label{ font-size:11px; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; color:var(--muted); margin:40px 0 16px; }
+  .photo-set-label:first-child{ margin-top:0; }
+
+  /* ---------- CONTACT VIEW ---------- */
+  .contact-view h2{ font-size:clamp(28px,4.4vw,48px); font-weight:700; max-width:640px; line-height:1.3; }
+  .contact-row{ margin-top:44px; display:flex; gap:48px; flex-wrap:wrap; }
+  .contact-row div dt{ font-size:11px; letter-spacing:0.08em; color:var(--muted); text-transform:uppercase; margin-bottom:8px; font-weight:700; }
+  .contact-row div dd{ font-size:15px; font-weight:400; }
+  .contact-row div dd a{ border-bottom:1px solid var(--ink); padding-bottom:1px; }
+  .contact-row div dd a:hover{ color:var(--muted); border-color:var(--muted); }
+
+  .ig-row{ display:flex; align-items:center; gap:12px; }
+
+  /* ---------- PERSISTENT FOOTER ---------- */
+  footer.site-foot{
+    padding:24px 8vw; border-top:1px solid var(--line);
+    display:flex; justify-content:space-between; font-size:11px; color:var(--muted); flex-wrap:wrap; gap:8px;
+    font-weight:500;
+  }
+  @media (min-width:1300px){ footer.site-foot{ padding:24px 120px; } }
+</style>
+</head>
+<body>
+
+<div class="cover" id="coverScreen">
+  <div class="cover-top">
+    <span>Architectural Portfolio</span>
+    <span>2019 — 2026</span>
+  </div>
+  <div class="cover-main">
+    <div class="cover-blank"><span class="bracket">[</span> <span class="word">BLANK</span> <span class="bracket">]</span></div>
+    <p class="cover-sub">Kim Ji Ye · Selected Works 2019 – 2026</p>
+  </div>
+  <button class="cover-enter" id="coverEnterBtn" aria-label="포트폴리오 보기">
+    <span>Enter</span>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12l7 7 7-7"/></svg>
+  </button>
+</div>
+
+<header class="topbar">
+  <div class="topbar-inner">
+    <button class="brand" id="brandReturnBtn" type="button">김지예 KIM JI YE <span>ARCHITECTURAL DESIGNER</span></button>
+  </div>
+  <nav class="icon-nav wrap" id="iconNav">
+    <button class="nav-item active" data-view="profile" aria-current="page">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8"/></svg>
+      <span>Profile</span>
+    </button>
+    <button class="nav-item" data-view="projects">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+      <span>Projects</span>
+    </button>
+    <button class="nav-item" data-view="photo">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="18" height="14" rx="2"/><circle cx="12" cy="13" r="3.5"/><path d="M8 6l1.5-2.5h5L16 6"/></svg>
+      <span>Photo</span>
+    </button>
+    <button class="nav-item" data-view="contact">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="1.5"/><path d="m4 6.5 8 6 8-6"/></svg>
+      <span>Contact</span>
+    </button>
+  </nav>
+</header>
+
+<!-- HERO (always visible) -->
+<section class="hero">
+  <div class="eyebrow">Architectural Portfolio — 2019 – 2026</div>
+  <h1>빈 공간이 아닌<br><em>채워질 가능성</em>을 만들다</h1>
+  <p class="sub">보이드와 매스, 빛과 그림자의 관계를 통해 사용자의 경험을 설계합니다. 절제된 언어로 공간의 본질에 다가갑니다.</p>
+</section>
+
+<main class="wrap" style="padding-left:0; padding-right:0;">
+
+<!-- PROFILE (includes Awards / Career / License as mini sections) -->
+<div class="view active" id="view-profile">
+  <section class="block" style="border-top:1px solid var(--line);">
+    <div class="block-head block-head--profile">
+      <h2>Profile</h2>
+    </div>
+    <div class="profile-grid">
+      <div class="profile-left">
+        <div class="profile-photo"><img src="data:image/jpeg;base64,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" alt="김지예 프로필 일러스트"></div>
+        <dl class="profile-mini-facts">
+          <div><dt>Name</dt><dd>김지예 · Kim Ji Ye</dd></div>
+          <div><dt>Birth</dt><dd>2001.01.02</dd></div>
+          <div><dt>Education</dt><dd>선문대학교 건축사회환경공학부<br>건축학전공(5년제)</dd></div>
+          <div><dt>Focus</dt><dd>공공건축 · 현상설계</dd></div>
+        </dl>
+      </div>
+      <div class="profile-text">
+        <p>안녕하세요, 건축 디자이너 <strong>김지예</strong>입니다. <strong>"빈 공간이 아닌 채워질 가능성을 만든다"</strong>는 태도로 설계에 임합니다. 대지가 가진 조건과 맥락을 읽어내고, 그 안에서 아직 드러나지 않은 가능성을 공간의 언어로 구체화하는 것을 제 역할이라고 생각합니다.</p>
+        <p>(주)에이아이알건축사사무소에서 현상설계부터 실시설계까지 폭넓은 스케일의 프로젝트를 담당해왔습니다. 20여 건의 현상설계에 참여했고, 공공청사(인계동 행정복지센터), 교육시설(서울 영파여자중학교), 주민자치시설(정릉3동 주민센터) 등 서로 다른 프로그램의 공공건축을 다뤄왔습니다.</p>
+        <p>아이디어를 다이어그램으로 구조화하는 초기 단계부터 모델링, 패널, 실시설계 도서 작성, 나아가 시공 단계의 상세 협의까지 — 하나의 프로젝트가 완성되기까지의 전 과정을 직접 책임지는 것을 원칙으로 삼고 있습니다. 설계자의 의도가 도면에서 그치지 않고 실제 공간으로 정확히 구현되는지를 끝까지 확인합니다.</p>
+      </div>
+    </div>
+
+    <div class="mini-widgets">
+      <div class="mini-card">
+        <div class="mini-card-head"><h4>Awards</h4></div>
+        <div class="mini-list">
+          <div class="mini-row"><span class="m-year">2019</span><span class="m-title">선문 홍보사진 공모전 — 특별상</span></div>
+          <div class="mini-row"><span class="m-year">2021</span><span class="m-title">한국농촌건축대전 — 입선</span></div>
+          <div class="mini-row"><span class="m-year">2022</span><span class="m-title">경기도 건축문화상 — 특별상</span></div>
+          <div class="mini-row"><span class="m-year">2022</span><span class="m-title">충남건축문화대전</span></div>
+          <div class="mini-row"><span class="m-year">2023</span><span class="m-title">경기도 건축문화상 — 입선</span></div>
+          <div class="mini-row"><span class="m-year">2023</span><span class="m-title">한국도시설계학회 학회장상</span></div>
+          <div class="mini-row"><span class="m-year">2023</span><span class="m-title">차세대문화공간 공모전 — 입선</span></div>
+        </div>
+      </div>
+      <div class="mini-card">
+        <div class="mini-card-head"><h4>Career</h4></div>
+        <div class="mini-list">
+          <div class="mini-row-career">
+            <span class="m-year">23.12–ing</span>
+            <div class="m-right">
+              <span class="m-company">(주)에이아이알건축사사무소</span>
+              <span class="m-position">대리</span>
+            </div>
+          </div>
+          <div class="mini-row-career">
+            <span class="m-year">22.12–23.02</span>
+            <div class="m-right">
+              <span class="m-company">예가건축사사무소</span>
+              <span class="m-position">인턴</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="mini-card">
+        <div class="mini-card-head"><h4>License</h4></div>
+        <div class="mini-list">
+          <div class="mini-row"><span class="m-year">License</span><span class="m-title">운전면허 1종 보통</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="skills-panel">
+      <div class="mini-card-head"><h4>Skills</h4></div>
+      <div class="skills-grid">
+        <div class="skill-row"><div class="s-label"><span>CAD</span></div><div class="skill-dots"><span class="filled"></span><span class="filled"></span><span class="filled"></span><span class="filled"></span><span></span></div></div>
+        <div class="skill-row"><div class="s-label"><span>Revit</span></div><div class="skill-dots"><span class="filled"></span><span class="filled"></span><span class="filled"></span><span></span><span></span></div></div>
+        <div class="skill-row"><div class="s-label"><span>Sketchup</span></div><div class="skill-dots"><span class="filled"></span><span class="filled"></span><span class="filled"></span><span class="filled"></span><span class="filled"></span></div></div>
+        <div class="skill-row"><div class="s-label"><span>Enscape</span></div><div class="skill-dots"><span class="filled"></span><span class="filled"></span><span class="filled"></span><span class="filled"></span><span></span></div></div>
+        <div class="skill-row"><div class="s-label"><span>Lumion</span></div><div class="skill-dots"><span class="filled"></span><span class="filled"></span><span class="filled"></span><span class="filled"></span><span></span></div></div>
+        <div class="skill-row"><div class="s-label"><span>D5 Render</span></div><div class="skill-dots"><span class="filled"></span><span class="filled"></span><span class="filled"></span><span></span><span></span></div></div>
+        <div class="skill-row"><div class="s-label"><span>Photoshop</span></div><div class="skill-dots"><span class="filled"></span><span class="filled"></span><span class="filled"></span><span></span><span></span></div></div>
+        <div class="skill-row"><div class="s-label"><span>InDesign</span></div><div class="skill-dots"><span class="filled"></span><span class="filled"></span><span class="filled"></span><span class="filled"></span><span></span></div></div>
+        <div class="skill-row"><div class="s-label"><span>Illustrator</span></div><div class="skill-dots"><span class="filled"></span><span class="filled"></span><span class="filled"></span><span class="filled"></span><span></span></div></div>
+        <div class="skill-row"><div class="s-label"><span>Ms Office</span></div><div class="skill-dots"><span class="filled"></span><span class="filled"></span><span class="filled"></span><span class="filled"></span><span></span></div></div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- PROJECTS -->
+<div class="view" id="view-projects">
+  <section class="block" style="border-top:1px solid var(--line);">
+    <div class="block-head">
+      <h2>Projects</h2>
+    </div>
+
+    <div class="subtabs">
+      <button class="subtab-btn active" data-sub="career">Professional</button>
+      <button class="subtab-btn" data-sub="student">Academic</button>
+    </div>
+
+    <!-- CAREER PROJECTS -->
+    <div class="subview active" id="sub-career">
+      <div class="project-row-list">
+        <button class="project-row-item" data-project="neungneung" type="button">
+          <img class="pr-thumb" src="career_neungneung_hero.jpg" alt="낯선 익숙함">
+          <div class="pr-body">
+            <span class="pr-year">2025 · · 1st |</span>
+            <h3>낯선 익숙함</h3>
+            <span class="pr-tag">정릉3동주민센터 공용청사 신축 설계공모</span>
+            <p class="pr-desc">북한산 자락 구릉지형 위 불규칙한 대지와 레벨차를 반영한 당선작. 계단, 난간, 벽돌 등 정릉동의 익숙한 도시적 풍경 요소를 현대적으로 재해석했습니다. 주민자치·민원행정·커뮤니티 3개 프로그램을 층별로 구성하고, 열린 외부공간을 통해 서로 다른 레벨을 연결했습니다.</p>
+          </div>
+        </button>
+        <button class="project-row-item" data-project="3grounds" type="button">
+          <img class="pr-thumb" src="career_3grounds_hero.jpg" alt="3 GROUNDS">
+          <div class="pr-body">
+            <span class="pr-year">2025 · · 2nd |</span>
+            <h3>3 GROUNDS</h3>
+            <span class="pr-tag">향남 청소년 문화의 집 설계공모</span>
+            <p class="pr-desc">공원과 보행로가 만나는 열린 부지에 위치한 청소년 문화시설. 3개 층에 각기 다른 성격의 그라운드(Park·Play·Culture Ground)를 두어 다양한 활동 그룹의 시설 활용도를 극대화하는 개방적 구조를 제안했습니다.</p>
+          </div>
+        </button>
+        <button class="project-row-item" data-project="seobu" type="button">
+          <img class="pr-thumb" src="career_seobu_hero.jpg" alt="자연이 품은 학교, 학교가 품은 마당">
+          <div class="pr-body">
+            <span class="pr-year">2024 · · 2nd |</span>
+            <h3>자연이 품은 학교, 학교가 품은 마당</h3>
+            <span class="pr-tag">제주 서부중학교 신축공사 설계공모</span>
+            <p class="pr-desc">숲과 녹지로 둘러싸인 대지 위, 교실과 외부공간이 유기적으로 연결된 'Learning Community'를 제안했습니다. 건폐율 20%로 자연을 최대한 보존하며, 마당이 산책로처럼 학생들의 일상적 학습·놀이 동선이 되도록 계획했습니다.</p>
+          </div>
+        </button>
+        <button class="project-row-item" data-project="library" type="button">
+          <img class="pr-thumb" src="career_library_hero.jpg" alt="LIBRARY IN FOREST">
+          <div class="pr-body">
+            <span class="pr-year">2024 · · 3rd |</span>
+            <h3>LIBRARY IN FOREST</h3>
+            <span class="pr-tag">고양 백석도서관 리모델링 설계공모</span>
+            <p class="pr-desc">폐쇄적이었던 기존 원형 도서관을 공원과 도시의 경계에서 다시 열었습니다. 전면은 광장화하고 후면은 숲·마당과 연결해, 채광이 좋은 후면을 도서관의 마당이자 백석공원 산자락 능선을 끌어들이는 열람공간으로 만들었습니다.</p>
+          </div>
+        </button>
+        <button class="project-row-item" data-project="ingye" type="button">
+          <img class="pr-thumb" src="career_ingye_hero.jpg" alt="인계동 행정복지센터 건립공사">
+          <div class="pr-body">
+            <span class="pr-year">2024</span>
+            <h3>인계동 행정복지센터 건립공사</h3>
+            <span class="pr-tag">설계용역 · 설계의도구현</span>
+            <p class="pr-desc">발주처·시공사와 협의하며 설계 의도를 실제 시공에 반영한 프로젝트. 골조 시공 전 배관 검토, 디자인블럭 상세도 3D 모델링 등 실무 디테일 작업을 직접 수행하며 시공 단계의 협업 역량을 키웠습니다.</p>
+          </div>
+        </button>
+        <button class="project-row-item" data-project="youngpa" type="button">
+          <img class="pr-thumb" src="career_youngpa_hero.jpg" alt="영파여자중학교 그린스마트미래학교">
+          <div class="pr-body">
+            <span class="pr-year">2024</span>
+            <h3>영파여자중학교 그린스마트미래학교</h3>
+            <span class="pr-tag">개축사업 · 기본/중간/실시설계</span>
+            <p class="pr-desc">기본설계 단계부터 참여한 개축 프로젝트. 창호도, 확장실 도면, 입면도, 3D 모델링, 단면도 작성 등 도면 구성 전반에 참여하며 실무 역량을 크게 끌어올린 프로젝트입니다.</p>
+          </div>
+        </button>
+      </div>
+
+      <div class="other-works">
+        <h4>Other Competition Works</h4>
+
+        <div class="ow-year-group">
+          <div class="ow-year-label">2023</div>
+          <div class="ow-grid">
+            <div class="ow-row"><span class="ow-body"><span class="ow-title">충남여성가족플라자 설계공모</span><span class="ow-desc">Diagram · Section</span></span></div>
+          </div>
+        </div>
+
+        <div class="ow-year-group">
+          <div class="ow-year-label">2024</div>
+          <div class="ow-grid">
+            <div class="ow-row"><span class="ow-body"><span class="ow-title">서울 당곡초등학교 설계공모 · 2nd</span><span class="ow-desc">Diagram · Section</span></span></div>
+            <div class="ow-row"><span class="ow-body"><span class="ow-title">서울 북가좌초등학교 설계공모</span><span class="ow-desc">Diagram · Section · Modeling</span></span></div>
+            <div class="ow-row"><span class="ow-body"><span class="ow-title">서울 보광초등학교 설계공모</span><span class="ow-desc">Diagram · Section · Modeling</span></span></div>
+            <div class="ow-row"><span class="ow-body"><span class="ow-title">서울 인헌초등학교 설계공모 · 2nd</span><span class="ow-desc">Diagram · Section · Modeling</span></span></div>
+            <div class="ow-row"><span class="ow-body"><span class="ow-title">서울 고은초등학교 설계공모</span><span class="ow-desc">Diagram · Section · Modeling</span></span></div>
+            <div class="ow-row"><span class="ow-body"><span class="ow-title">서울 동신초등학교 설계공모 · 2nd</span><span class="ow-desc">Diagram · Section · Elevation · Modeling</span></span></div>
+            <div class="ow-row"><span class="ow-body"><span class="ow-title">서울 역촌초등학교 설계공모</span><span class="ow-desc">Diagram · Section · Elevation</span></span></div>
+            <div class="ow-row"><span class="ow-body"><span class="ow-title">수원시 금곡동 공공도서관 설계공모</span><span class="ow-desc">Diagram · Section · Alt Design · Modeling · Report PM</span></span></div>
+            <div class="ow-row"><span class="ow-body"><span class="ow-title">고양시 향당커뮤니티센터 · 5th</span><span class="ow-desc">Diagram · Section · Modeling · Panel PM</span></span></div>
+          </div>
+        </div>
+
+        <div class="ow-year-group">
+          <div class="ow-year-label">2025</div>
+          <div class="ow-grid">
+            <div class="ow-row"><span class="ow-body"><span class="ow-title">서울 중앙여자중학교 설계공모 · 5th</span><span class="ow-desc">Diagram · Section · Elevation · Modeling · Panel PM</span></span></div>
+            <div class="ow-row"><span class="ow-body"><span class="ow-title">서울 오산중학교 설계공모</span><span class="ow-desc">Diagram · Section · Elevation · Modeling · Panel PM</span></span></div>
+            <div class="ow-row"><span class="ow-body"><span class="ow-title">서울 송문중학교 설계공모</span><span class="ow-desc">Diagram · Section · Elevation · Modeling · Panel PM</span></span></div>
+            <div class="ow-row"><span class="ow-body"><span class="ow-title">강원대 반도체공동연구소 제안공모 · 2nd</span><span class="ow-desc">Diagram · Section · Modeling · Panel PM</span></span></div>
+            <div class="ow-row"><span class="ow-body"><span class="ow-title">송산 문화스포츠센터 설계공모</span><span class="ow-desc">Diagram · Section · Modeling · Panel PM · Report PM</span></span></div>
+            <div class="ow-row"><span class="ow-body"><span class="ow-title">양주 어울림센터 건립공사</span><span class="ow-desc">Diagram · Section · Modeling · Panel PM · Report PM</span></span></div>
+          </div>
+        </div>
+
+        <div class="ow-year-group">
+          <div class="ow-year-label">2026</div>
+          <div class="ow-grid">
+            <div class="ow-row"><span class="ow-body"><span class="ow-title">내포-서산 창작예술촌</span><span class="ow-desc">Diagram · Section · Modeling · Panel PM · Report PM</span></span></div>
+            <div class="ow-row"><span class="ow-body"><span class="ow-title">암사1동 공공·문화 통합센터 건립 설계공모 · 3rd</span><span class="ow-desc">Diagram · Section · Modeling · Panel PM · Report PM</span></span></div>
+            <div class="ow-row"><span class="ow-body"><span class="ow-title">번3동주민센터 청사 건립 설계공모</span><span class="ow-desc">Diagram · Section · Modeling · Panel PM · Report PM</span></span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- STUDENT PROJECTS -->
+    <div class="subview" id="sub-student">
+      <div class="project-row-list">
+        <button class="project-row-item" data-project="recreate" type="button">
+          <img class="pr-thumb" src="student_recreate_hero.jpg" alt="Recreate A City">
+          <div class="pr-body">
+            <span class="pr-year">2023 · · 개인 |</span>
+            <h3>Recreate A City</h3>
+            <span class="pr-tag">동묘 Re&Up 사이클 센터 · Design Studio 9</span>
+            <p class="pr-desc">패스트패션으로 급증하는 의류 폐기물 문제에 주목해, 동묘 벼룩시장 일대에 재활용·새활용 산업 허브가 될 Re&Up 사이클 센터를 제안했습니다. 폐의류의 수거–분류–재판매–연구로 이어지는 순환 과정을 판매·교육·연구 영역으로 조직하고, 동묘공원과 청계천을 잇는 축으로 방문객 동선을 설계했습니다.</p>
+          </div>
+        </button>
+        <button class="project-row-item" data-project="ihwa" type="button">
+          <img class="pr-thumb" src="student_ihwa_hero.jpg" alt="잃어버린 이화를 찾다">
+          <div class="pr-body">
+            <span class="pr-year">2022 · · 팀 · 입선 |</span>
+            <h3>잃어버린 이화를 찾다</h3>
+            <span class="pr-tag">성환 이화시장 재창조 · 경기도 건축문화상</span>
+            <p class="pr-desc">신도심 발달로 쇠퇴한 천안 성환읍 이화시장의 도시재생을 제안한 팀 프로젝트. 문화예술거리·글라스스트리트·시장-5일장거리 세 거리를 연결해 상인과 방문객의 동선을 재구성하고, 청년 창업공간 Start-Up Park를 계획했습니다. 최종 발표와 설계보고서 작성을 담당했습니다.</p>
+          </div>
+        </button>
+        <button class="project-row-item" data-project="silverhouse" type="button">
+          <img class="pr-thumb" src="student_silverhouse_hero.jpg" alt="Well-aging Silver House">
+          <div class="pr-body">
+            <span class="pr-year">2022 · · 개인 |</span>
+            <h3>Well-aging Silver House</h3>
+            <span class="pr-tag">은퇴자를 위한 공동주택 · Design Studio 8</span>
+            <p class="pr-desc">평균 기대수명 증가에 따라 은퇴 이후 삶의 목표를 함께 세울 수 있는 커뮤니티 공동주택을 제안했습니다. 동과 동 사이 유휴공간을 공유주방과 커뮤니티 공간으로 계획해, 각 세대에 흩어진 주민이 자연스럽게 모이는 구조를 설계했습니다.</p>
+          </div>
+        </button>
+        <button class="project-row-item" data-project="yeongcheon" type="button">
+          <img class="pr-thumb" src="student_yeongcheon_hero.jpg" alt="영천강 길을 따라 모도이다">
+          <div class="pr-body">
+            <span class="pr-year">2021 · · 팀 · 입선 |</span>
+            <h3>영천강 길을 따라 모도이다</h3>
+            <span class="pr-tag">영현면 커뮤니티센터 · 한국농촌건축대전</span>
+            <p class="pr-desc">초고령화로 침체된 고성군 영현면에 청년과 노인이 공생할 수 있는 커뮤니티센터를 제안한 팀 프로젝트. 지역 상징물인 국화와 은행나무를 모티브로 1층엔 공생학습 공간을, 2~3층엔 주민 문화공간을 배치하고 중정으로 모든 층을 연결했습니다.</p>
+          </div>
+        </button>
+        <button class="project-row-item" data-project="track" type="button">
+          <img class="pr-thumb" src="student_track_hero.jpg" alt="트랙 위에서 자유를 얻다">
+          <div class="pr-body">
+            <span class="pr-year">2021 · · 개인 |</span>
+            <h3>트랙 위에서 자유를 얻다</h3>
+            <span class="pr-tag">아산 당정면 초등학교 · Design Studio 5</span>
+            <p class="pr-desc">정적인 학습 공간에 머물던 기존 초등학교에서 벗어나, 옥상 트랙을 중심으로 자연 속에서 몸으로 배우는 동적인 학습 공간을 제안했습니다. 동선축을 기준으로 정적·동적 공간을 분리하고, 1층 매스를 비워 외부와 연결되는 열린 공간을 만들었습니다.</p>
+          </div>
+        </button>
+      </div>
+
+      <div class="extra-note">
+        <strong>+ EXTRA WORK</strong> — 해비타트 봉사활동, 학과 홍보(전공멘토단·홍보영상), 학과 설계동아리 '틈'(2019.03–2024.02), 중앙 건축봉사동아리 '그린나래' 부회장(2022.03–2023.02), 건축학부 학생회 기획부 부장(2022.03–2023.02) 등 학교생활 전반의 활동을 이어왔습니다.
+      </div>
+    </div>
+
+    <!-- PROJECT DETAIL MODAL -->
+    <div class="proj-modal" id="projModal">
+      <div class="proj-modal-panel">
+        <div class="pm-topbar">
+          <button class="proj-modal-close" id="pmClose" type="button" aria-label="닫기">✕</button>
+        </div>
+        <div class="pm-stage" id="pmStage">
+          <img id="pmImage" src="" alt="">
+        </div>
+        <div class="pm-controls">
+          <button class="pm-arrow" id="pmNext" type="button" aria-label="다음 이미지">
+            <svg viewBox="0 0 34 14" fill="none" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round"><path d="M1 7h29M20 1l10 6"/></svg>
+          </button>
+        </div>
+        <div class="proj-modal-text">
+          <span class="proj-modal-tag" id="pmTag"></span>
+          <h2 id="pmTitle"></h2>
+          <p class="proj-modal-desc" id="pmDesc"></p>
+        </div>
+      </div>
+    </div>
+
+    <!-- FULLSCREEN IMAGE LIGHTBOX -->
+    <div class="img-lightbox" id="imgLightbox">
+      <button class="lightbox-close" id="lightboxClose" type="button" aria-label="닫기">✕</button>
+      <div class="img-lightbox-inner">
+        <img id="lightboxImage" src="" alt="">
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- PHOTO -->
+<div class="view" id="view-photo">
+  <section class="block" style="border-top:1px solid var(--line);">
+    <div class="block-head">
+      <h2>Photo</h2>
+    </div>
+    <p class="photo-intro">사진 촬영은 오래된 취미입니다. 일상에서 마주치는 빛과 구도, 재료의 질감을 담아두는 습관이 공간을 보는 시선에도 영향을 줍니다.</p>
+
+    <div class="photo-set-label">인계동 행정복지센터 · 준공사진</div>
+    <div class="photo-grid">
+      <div class="photo-item"><img src="IMG_1155.jpeg" alt="인계동 행정복지센터 강당 내부"><span class="cap">인계동 행정복지센터</span></div>
+      <div class="photo-item"><img src="IMG_1080.jpeg" alt="인계동 행정복지센터 외부 계단"><span class="cap">인계동 행정복지센터</span></div>
+      <div class="photo-item"><img src="IMG_1006.jpeg" alt="인계동 행정복지센터 계단실"><span class="cap">인계동 행정복지센터</span></div>
+      <div class="photo-item"><img src="DSC06663.jpeg" alt="인계동 행정복지센터 전경"><span class="cap">인계동 행정복지센터</span></div>
+      <div class="photo-item"><img src="DSC06621.jpeg" alt="인계동 행정복지센터 벽돌 파사드"><span class="cap">인계동 행정복지센터</span></div>
+      <div class="photo-item"><img src="DSC06581.jpeg" alt="인계동 행정복지센터 광장에서 본 전경"><span class="cap">인계동 행정복지센터</span></div>
+    </div>
+
+    <div class="photo-set-label">Travel · Japan</div>
+    <div class="photo-grid">
+      <div class="photo-item"><img src="DSC04075.jpeg" alt="메이지신궁뮤지엄, 쿠마 겐고"><span class="cap">메이지신궁뮤지엄</span></div>
+    </div>
+  </section>
+</div>
+
+<!-- CONTACT -->
+<div class="view" id="view-contact">
+  <section class="block contact-view" style="border-top:1px solid var(--line);">
+    <span class="eyebrow">Contact</span>
+    <dl class="contact-row" style="margin-top:32px;">
+      <div><dt>Email</dt><dd>jingye131313@gmail.com</dd></div>
+      <div><dt>Mobile</dt><dd>010-4692-9247</dd></div>
+      <div><dt>Instagram</dt><dd class="ig-row"><a href="https://www.instagram.com/jirieom1.3?igsh=MW5xM3ZvZ2RidnloeA==" target="_blank" rel="noopener">@jirieom1.3</a></dd></div>
+    </dl>
+    
+  </section>
+</div>
+
+</main>
+
+<footer class="site-foot">
+  <span>© 2026 KIM JI YE. All rights reserved.</span>
+  <span>Seoul, Korea</span>
+</footer>
+
+<script>
+  const PROJECT_DATA = {"neungneung": {"title": "낯선 익숙함", "tag": "정릉3동주민센터 공용청사 신축 설계공모", "desc": "북한산 자락 구릉지형 위 불규칙한 대지와 레벨차를 반영한 당선작. 계단, 난간, 벽돌 등 정릉동의 익숙한 도시적 풍경 요소를 현대적으로 재해석했습니다. 주민자치·민원행정·커뮤니티 3개 프로그램을 층별로 구성하고, 열린 외부공간을 통해 서로 다른 레벨을 연결했습니다.", "images": ["career_neungneung_hero.jpg", "career_neungneung_d05.jpg", "career_neungneung_d06.jpg", "career_neungneung_d07.jpg"]}, "3grounds": {"title": "3 GROUNDS", "tag": "향남 청소년 문화의 집 설계공모", "desc": "공원과 보행로가 만나는 열린 부지에 위치한 청소년 문화시설. 3개 층에 각기 다른 성격의 그라운드(Park·Play·Culture Ground)를 두어 다양한 활동 그룹의 시설 활용도를 극대화하는 개방적 구조를 제안했습니다.", "images": ["career_3grounds_hero.jpg", "career_3grounds_d09.jpg", "career_3grounds_d10.jpg", "career_3grounds_d11.jpg", "career_3grounds_d12.jpg"]}, "seobu": {"title": "자연이 품은 학교, 학교가 품은 마당", "tag": "제주 서부중학교 신축공사 설계공모", "desc": "숲과 녹지로 둘러싸인 대지 위, 교실과 외부공간이 유기적으로 연결된 'Learning Community'를 제안했습니다. 건폐율 20%로 자연을 최대한 보존하며, 마당이 산책로처럼 학생들의 일상적 학습·놀이 동선이 되도록 계획했습니다.", "images": ["career_seobu_hero.jpg", "career_seobu_d14.jpg", "career_seobu_d15.jpg"]}, "library": {"title": "LIBRARY IN FOREST", "tag": "고양 백석도서관 리모델링 설계공모", "desc": "폐쇄적이었던 기존 원형 도서관을 공원과 도시의 경계에서 다시 열었습니다. 전면은 광장화하고 후면은 숲·마당과 연결해, 채광이 좋은 후면을 도서관의 마당이자 백석공원 산자락 능선을 끌어들이는 열람공간으로 만들었습니다.", "images": ["career_library_hero.jpg", "career_library_d17.jpg", "career_library_d18.jpg", "career_library_d19.jpg"]}, "ingye": {"title": "인계동 행정복지센터 건립공사", "tag": "설계용역 · 설계의도구현", "desc": "발주처·시공사와 협의하며 설계 의도를 실제 시공에 반영한 프로젝트. 골조 시공 전 배관 검토, 디자인블럭 상세도 3D 모델링 등 실무 디테일 작업을 직접 수행하며 시공 단계의 협업 역량을 키웠습니다.", "images": ["career_ingye_hero.jpg", "career_ingye_d21.jpg", "career_ingye_d22.jpg"]}, "youngpa": {"title": "영파여자중학교 그린스마트미래학교", "tag": "개축사업 · 기본/중간/실시설계", "desc": "기본설계 단계부터 참여한 개축 프로젝트. 창호도, 확장실 도면, 입면도, 3D 모델링, 단면도 작성 등 도면 구성 전반에 참여하며 실무 역량을 크게 끌어올린 프로젝트입니다.", "images": ["career_youngpa_hero.jpg", "career_youngpa_d24.jpg", "career_youngpa_d25.jpg"]}, "recreate": {"title": "Recreate A City", "tag": "동묘 Re&Up 사이클 센터 · Design Studio 9", "desc": "패스트패션으로 급증하는 의류 폐기물 문제에 주목해, 동묘 벼룩시장 일대에 재활용·새활용 산업 허브가 될 Re&Up 사이클 센터를 제안했습니다. 폐의류의 수거–분류–재판매–연구로 이어지는 순환 과정을 판매·교육·연구 영역으로 조직하고, 동묘공원과 청계천을 잇는 축으로 방문객 동선을 설계했습니다.", "images": ["student_recreate_hero.jpg", "student_recreate_d04.jpg", "student_recreate_d05.jpg", "student_recreate_d06.jpg", "student_recreate_d07.jpg", "student_recreate_d08.jpg"]}, "ihwa": {"title": "잃어버린 이화를 찾다", "tag": "성환 이화시장 재창조 · 경기도 건축문화상", "desc": "신도심 발달로 쇠퇴한 천안 성환읍 이화시장의 도시재생을 제안한 팀 프로젝트. 문화예술거리·글라스스트리트·시장-5일장거리 세 거리를 연결해 상인과 방문객의 동선을 재구성하고, 청년 창업공간 Start-Up Park를 계획했습니다. 최종 발표와 설계보고서 작성을 담당했습니다.", "images": ["student_ihwa_hero.jpg", "student_ihwa_d10.jpg", "student_ihwa_d11.jpg"]}, "silverhouse": {"title": "Well-aging Silver House", "tag": "은퇴자를 위한 공동주택 · Design Studio 8", "desc": "평균 기대수명 증가에 따라 은퇴 이후 삶의 목표를 함께 세울 수 있는 커뮤니티 공동주택을 제안했습니다. 동과 동 사이 유휴공간을 공유주방과 커뮤니티 공간으로 계획해, 각 세대에 흩어진 주민이 자연스럽게 모이는 구조를 설계했습니다.", "images": ["student_silverhouse_hero.jpg", "student_silverhouse_d13.jpg", "student_silverhouse_d14.jpg", "student_silverhouse_d15.jpg"]}, "yeongcheon": {"title": "영천강 길을 따라 모도이다", "tag": "영현면 커뮤니티센터 · 한국농촌건축대전", "desc": "초고령화로 침체된 고성군 영현면에 청년과 노인이 공생할 수 있는 커뮤니티센터를 제안한 팀 프로젝트. 지역 상징물인 국화와 은행나무를 모티브로 1층엔 공생학습 공간을, 2~3층엔 주민 문화공간을 배치하고 중정으로 모든 층을 연결했습니다.", "images": ["student_yeongcheon_hero.jpg", "student_yeongcheon_d17.jpg"]}, "track": {"title": "트랙 위에서 자유를 얻다", "tag": "아산 당정면 초등학교 · Design Studio 5", "desc": "정적인 학습 공간에 머물던 기존 초등학교에서 벗어나, 옥상 트랙을 중심으로 자연 속에서 몸으로 배우는 동적인 학습 공간을 제안했습니다. 동선축을 기준으로 정적·동적 공간을 분리하고, 1층 매스를 비워 외부와 연결되는 열린 공간을 만들었습니다.", "images": ["student_track_hero.jpg", "student_track_d19.jpg"]}};
+
+  // COVER SCREEN
+  document.documentElement.classList.add('cover-lock');
+  const coverEl = document.getElementById('coverScreen');
+  function dismissCover(){
+    coverEl.classList.add('cover-hidden');
+    document.documentElement.classList.remove('cover-lock');
+  }
+  coverEl.addEventListener('click', dismissCover);
+  document.getElementById('coverEnterBtn').addEventListener('click', (e)=>{ e.stopPropagation(); dismissCover(); });
+  document.getElementById('brandReturnBtn').addEventListener('click', ()=>{
+    coverEl.classList.remove('cover-hidden');
+    document.documentElement.classList.add('cover-lock');
+  });
+
+  function switchView(name){
+    document.querySelectorAll('.view').forEach(el => el.classList.remove('active'));
+    document.querySelectorAll('.nav-item').forEach(el => {
+      el.classList.toggle('active', el.dataset.view === name);
+      if(el.dataset.view === name){ el.setAttribute('aria-current','page'); }
+      else{ el.removeAttribute('aria-current'); }
+    });
+    const target = document.getElementById('view-' + name);
+    if(target){ target.classList.add('active'); }
+    window.scrollTo({ top: document.querySelector('section.hero').offsetHeight, behavior:'smooth' });
+  }
+
+  function switchSubview(name){
+    document.querySelectorAll('.subview').forEach(el => el.classList.remove('active'));
+    document.querySelectorAll('.subtab-btn').forEach(el => el.classList.toggle('active', el.dataset.sub === name));
+    document.getElementById('sub-' + name).classList.add('active');
+  }
+
+  // PROJECT DETAIL MODAL (single-image carousel + click-to-zoom)
+  const projModal = document.getElementById('projModal');
+  const pmStage = document.getElementById('pmStage');
+  const pmImage = document.getElementById('pmImage');
+  const pmTag = document.getElementById('pmTag');
+  const pmTitle = document.getElementById('pmTitle');
+  const pmDesc = document.getElementById('pmDesc');
+  const pmNext = document.getElementById('pmNext');
+  let currentProject = null;
+  let currentIndex = 0;
+
+  function showImage(){
+    const p = PROJECT_DATA[currentProject];
+    pmImage.src = p.images[currentIndex];
+    pmImage.alt = p.title;
+    pmStage.scrollTop = 0;
+    pmStage.scrollLeft = 0;
+  }
+  function openProject(id){
+    const p = PROJECT_DATA[id];
+    if(!p) return;
+    currentProject = id;
+    currentIndex = 0;
+    showImage();
+    pmTag.textContent = p.tag;
+    pmTitle.textContent = p.title;
+    pmDesc.textContent = p.desc;
+    projModal.classList.add('proj-modal-open');
+    document.documentElement.classList.add('modal-lock');
+  }
+  function closeProject(){
+    projModal.classList.remove('proj-modal-open');
+    document.documentElement.classList.remove('modal-lock');
+  }
+  function nextImage(){
+    const p = PROJECT_DATA[currentProject];
+    if(!p) return;
+    currentIndex = (currentIndex + 1) % p.images.length;
+    showImage();
+  }
+  document.querySelectorAll('.project-row-item').forEach(row => {
+    row.addEventListener('click', () => openProject(row.dataset.project));
+  });
+  document.getElementById('pmClose').addEventListener('click', closeProject);
+  pmNext.addEventListener('click', nextImage);
+  projModal.addEventListener('click', (e) => { if(e.target === projModal) closeProject(); });
+
+  // FULLSCREEN IMAGE LIGHTBOX (pinch/scroll to zoom natively)
+  const imgLightbox = document.getElementById('imgLightbox');
+  const lightboxImage = document.getElementById('lightboxImage');
+  function openLightbox(){
+    lightboxImage.src = pmImage.src;
+    lightboxImage.alt = pmImage.alt;
+    imgLightbox.classList.add('lightbox-open');
+  }
+  function closeLightbox(){
+    imgLightbox.classList.remove('lightbox-open');
+  }
+  pmImage.addEventListener('click', openLightbox);
+  document.getElementById('lightboxClose').addEventListener('click', closeLightbox);
+
+  document.querySelectorAll('[data-view]').forEach(btn => {
+    btn.addEventListener('click', () => switchView(btn.dataset.view));
+  });
+  document.querySelectorAll('[data-sub]').forEach(btn => {
+    btn.addEventListener('click', () => switchSubview(btn.dataset.sub));
+  });
+</script>
+
+</body>
+</html>
